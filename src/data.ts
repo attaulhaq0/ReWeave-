@@ -15,8 +15,8 @@ export const MOCK_LISTINGS: Listing[] = [
     status: 'ACTIVE',
     auctionEndAt: new Date(Date.now() + 86400000 * 2).toISOString(), // 2 days from now
     images: [
-      'https://picsum.photos/seed/cotton1/800/600',
-      'https://picsum.photos/seed/cotton2/800/600'
+      'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1584589167171-541ce45f1eea?auto=format&fit=crop&w=800&q=80'
     ],
     aiClassification: {
       materialType: { value: 'COTTON', confidence: 0.94 },
@@ -45,7 +45,7 @@ export const MOCK_LISTINGS: Listing[] = [
     status: 'ACTIVE',
     auctionEndAt: new Date(Date.now() + 86400000 * 1).toISOString(),
     images: [
-      'https://picsum.photos/seed/denim1/800/600'
+      'https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=800&q=80'
     ],
     aiClassification: {
       materialType: { value: 'DENIM', confidence: 0.98 },
@@ -75,7 +75,7 @@ export const MOCK_LISTINGS: Listing[] = [
     status: 'ACTIVE',
     auctionEndAt: new Date(Date.now() + 86400000 * 5).toISOString(),
     images: [
-      'https://picsum.photos/seed/poly1/800/600'
+      'https://images.unsplash.com/photo-1550592704-6c76defa99ce?auto=format&fit=crop&w=800&q=80'
     ],
     aiClassification: {
       materialType: { value: 'POLYESTER', confidence: 0.91 },

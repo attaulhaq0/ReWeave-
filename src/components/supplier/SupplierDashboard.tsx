@@ -4,6 +4,8 @@ import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { MOCK_LISTINGS } from '../../data';
 import { Plus, TrendingUp, Package, DollarSign, Activity } from 'lucide-react';
+import { MaterialBreakdownChart } from '../analytics/MaterialBreakdownChart';
+import { PriceTrendChart } from '../analytics/PriceTrendChart';
 
 interface SupplierDashboardProps {
   onCreateListing: () => void;
@@ -27,39 +29,46 @@ export function SupplierDashboard({ onCreateListing }: SupplierDashboardProps) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card>
-          <CardContent className="p-6 flex items-center gap-4">
-            <div className="p-3 bg-brand-primary/10 rounded-lg text-brand-primary">
+        <Card className="border-[6px] border-gray-200/70 shadow-none rounded-2xl">
+          <CardContent className="p-6 flex items-start gap-4">
+            <div className="p-3 bg-gray-100 rounded-xl text-gray-600 shrink-0">
               <Package className="w-6 h-6" />
             </div>
-            <div>
-              <p className="text-sm text-gray-500 font-medium">Active Listings</p>
-              <p className="text-2xl font-bold text-gray-900">{activeListings.length}</p>
+            <div className="flex flex-col">
+              <p className="text-sm text-gray-500 font-medium leading-tight mb-2">Active Listings</p>
+              <p className="text-3xl font-bold text-gray-900">{activeListings.length}</p>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-6 flex items-center gap-4">
-            <div className="p-3 bg-brand-accent/10 rounded-lg text-brand-accent">
+        
+        <Card className="border-[6px] border-gray-200/70 shadow-none rounded-2xl">
+          <CardContent className="p-6 flex items-start gap-4">
+            <div className="p-3 bg-brand-accent/10 rounded-xl text-brand-accent shrink-0">
               <Activity className="w-6 h-6" />
             </div>
-            <div>
-              <p className="text-sm text-gray-500 font-medium">Total Volume Listed</p>
-              <p className="text-2xl font-bold text-gray-900">{totalVolume.toLocaleString()} kg</p>
+            <div className="flex flex-col">
+              <p className="text-sm text-gray-500 font-medium leading-tight mb-2">Total Volume<br/>Listed</p>
+              <p className="text-3xl font-bold text-gray-900 leading-tight">{totalVolume.toLocaleString()}<br/><span className="text-xl">kg</span></p>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-6 flex items-center gap-4">
-            <div className="p-3 bg-brand-warning/10 rounded-lg text-brand-warning">
+        
+        <Card className="border-[6px] border-gray-200/70 shadow-none rounded-2xl">
+          <CardContent className="p-6 flex items-start gap-4">
+            <div className="p-3 bg-brand-warning/10 rounded-xl text-brand-warning shrink-0">
               <DollarSign className="w-6 h-6" />
             </div>
-            <div>
-              <p className="text-sm text-gray-500 font-medium">Potential Revenue</p>
-              <p className="text-2xl font-bold text-gray-900">PKR {potentialRevenue.toLocaleString()}</p>
+            <div className="flex flex-col">
+              <p className="text-sm text-gray-500 font-medium leading-tight mb-2">Potential<br/>Revenue</p>
+              <p className="text-3xl font-bold text-gray-900 leading-tight"><span className="text-xl">PKR</span><br/>{potentialRevenue.toLocaleString()}</p>
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <PriceTrendChart />
+        <MaterialBreakdownChart />
       </div>
 
       <h2 className="text-xl font-bold text-brand-primary mb-4">Your Active Listings</h2>

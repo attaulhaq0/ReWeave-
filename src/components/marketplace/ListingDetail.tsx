@@ -4,7 +4,7 @@ import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 import { Input } from '../ui/Input';
-import { ArrowLeft, Sparkles, MapPin, Scale, Clock, ShieldCheck, Truck } from 'lucide-react';
+import { ArrowLeft, Sparkles, MapPin, Scale, Clock, ShieldCheck, Truck, Zap } from 'lucide-react';
 
 interface ListingDetailProps {
   listing: Listing;
@@ -13,14 +13,18 @@ interface ListingDetailProps {
 
 export function ListingDetail({ listing, onBack }: ListingDetailProps) {
   const [bidAmount, setBidAmount] = useState<string>('');
+  const [autoBidCeiling, setAutoBidCeiling] = useState<string>('');
   const [isBidding, setIsBidding] = useState(false);
+  const [showAutoBid, setShowAutoBid] = useState(false);
 
   const handleBid = () => {
     setIsBidding(true);
     setTimeout(() => {
-      alert(`Bid of PKR ${bidAmount} placed successfully!`);
+      alert(`Bid of PKR ${bidAmount} ${autoBidCeiling ? `with auto-bid up to PKR ${autoBidCeiling}` : ''} placed successfully!`);
       setIsBidding(false);
       setBidAmount('');
+      setAutoBidCeiling('');
+      setShowAutoBid(false);
     }, 1000);
   };
 
@@ -127,9 +131,9 @@ export function ListingDetail({ listing, onBack }: ListingDetailProps) {
               </p>
             </CardHeader>
             <CardContent className="pt-6 space-y-6">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Your Bid (PKR)</label>
-                <div className="flex gap-2">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Your Bid (PKR)</label>
                   <Input 
                     type="number" 
                     placeholder="Enter amount..." 
@@ -137,8 +141,31 @@ export function ListingDetail({ listing, onBack }: ListingDetailProps) {
                     onChange={(e) => setBidAmount(e.target.value)}
                     className="text-lg font-medium"
                   />
+                  <p className="text-xs text-gray-500">Must be higher than current bid</p>
                 </div>
-                <p className="text-xs text-gray-500">Must be higher than current bid</p>
+
+                {!showAutoBid ? (
+                  <button 
+                    onClick={() => setShowAutoBid(true)}
+                    className="text-sm text-brand-accent font-medium flex items-center gap-1 hover:underline"
+                  >
+                    <Zap className="w-4 h-4" /> Set up Auto-Bid
+                  </button>
+                ) : (
+                  <div className="space-y-2 bg-brand-accent/5 p-3 rounded-lg border border-brand-accent/20">
+                    <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                      <Zap className="w-4 h-4 text-brand-accent" /> Auto-Bid Ceiling (PKR)
+                    </label>
+                    <Input 
+                      type="number" 
+                      placeholder="Maximum amount..." 
+                      value={autoBidCeiling}
+                      onChange={(e) => setAutoBidCeiling(e.target.value)}
+                      className="bg-white"
+                    />
+                    <p className="text-xs text-gray-500">We'll automatically bid for you up to this amount.</p>
+                  </div>
+                )}
               </div>
               
               <Button 
@@ -173,7 +200,7 @@ export function ListingDetail({ listing, onBack }: ListingDetailProps) {
                 <Truck className="w-5 h-5 text-brand-accent mt-0.5" />
                 <div>
                   <h4 className="font-medium text-gray-900">Logistics Support</h4>
-                  <p className="text-sm text-gray-500">Optimized pickup routes arranged by TextileLoop.</p>
+                  <p className="text-sm text-gray-500">Optimized pickup routes arranged by ReWeave.</p>
                 </div>
               </div>
             </CardContent>

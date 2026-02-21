@@ -4,7 +4,7 @@ import { ListingDetail } from './components/marketplace/ListingDetail';
 import { SupplierDashboard } from './components/supplier/SupplierDashboard';
 import { CreateListing } from './components/supplier/CreateListing';
 import { Listing } from './types';
-import { LayoutDashboard, ShoppingBag, PlusCircle, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, PlusCircle, LogOut, Menu, X, Recycle } from 'lucide-react';
 
 type ViewState = 'marketplace' | 'listing_detail' | 'supplier_dashboard' | 'create_listing';
 type Persona = 'buyer' | 'supplier';
@@ -56,9 +56,9 @@ export default function App() {
       <div className="md:hidden bg-white border-b border-gray-200 p-4 flex justify-between items-center sticky top-0 z-20">
         <div className="flex items-center gap-2 text-brand-primary font-bold text-xl">
           <div className="w-8 h-8 bg-brand-primary rounded-lg flex items-center justify-center text-white">
-            TL
+            <Recycle className="w-5 h-5" />
           </div>
-          TextileLoop AI
+          ReWeave
         </div>
         <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-gray-500">
           {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -72,9 +72,9 @@ export default function App() {
       `}>
         <div className="p-6 hidden md:flex items-center gap-3 text-brand-primary font-bold text-2xl border-b border-gray-100">
           <div className="w-10 h-10 bg-brand-primary rounded-xl flex items-center justify-center text-white shadow-sm">
-            TL
+            <Recycle className="w-6 h-6" />
           </div>
-          TextileLoop
+          ReWeave
         </div>
 
         <div className="p-4 flex-1 overflow-y-auto space-y-2">
