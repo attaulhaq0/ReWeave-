@@ -1,8 +1,15 @@
-import { Listing } from './types';
+import { Listing, User, Order, Bid } from './types';
+
+export const MOCK_USERS: User[] = [
+  { id: 'u_1', email: 'farhan@factory.com', role: 'SUPPLIER', fullName: 'Farhan Ahmed', companyName: 'Farhan Textiles Ltd.', kybStatus: 'VERIFIED' },
+  { id: 'u_2', email: 'sadia@recycler.com', role: 'BUYER', fullName: 'Sadia Khan', companyName: 'EcoFibers PK' },
+  { id: 'u_3', email: 'admin@reweave.ai', role: 'ADMIN', fullName: 'Hamid Ali', companyName: 'ReWeave' }
+];
 
 export const MOCK_LISTINGS: Listing[] = [
   {
     id: 'lst_1',
+    supplierId: 'u_1',
     supplierName: 'Farhan Textiles Ltd.',
     supplierLocation: 'Faisalabad, PK',
     materialType: 'COTTON',
@@ -15,8 +22,8 @@ export const MOCK_LISTINGS: Listing[] = [
     status: 'ACTIVE',
     auctionEndAt: new Date(Date.now() + 86400000 * 2).toISOString(), // 2 days from now
     images: [
-      'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1584589167171-541ce45f1eea?auto=format&fit=crop&w=800&q=80'
+      'https://picsum.photos/seed/cotton1/800/600',
+      'https://picsum.photos/seed/cotton2/800/600'
     ],
     aiClassification: {
       materialType: { value: 'COTTON', confidence: 0.94 },
@@ -34,6 +41,7 @@ export const MOCK_LISTINGS: Listing[] = [
   },
   {
     id: 'lst_2',
+    supplierId: 'u_1',
     supplierName: 'Nishat Mills',
     supplierLocation: 'Lahore, PK',
     materialType: 'DENIM',
@@ -45,7 +53,7 @@ export const MOCK_LISTINGS: Listing[] = [
     status: 'ACTIVE',
     auctionEndAt: new Date(Date.now() + 86400000 * 1).toISOString(),
     images: [
-      'https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=800&q=80'
+      'https://picsum.photos/seed/denim1/800/600'
     ],
     aiClassification: {
       materialType: { value: 'DENIM', confidence: 0.98 },
@@ -63,6 +71,7 @@ export const MOCK_LISTINGS: Listing[] = [
   },
   {
     id: 'lst_3',
+    supplierId: 'u_1',
     supplierName: 'Crescent Bahuman',
     supplierLocation: 'Karachi, PK',
     materialType: 'POLYESTER',
@@ -75,7 +84,7 @@ export const MOCK_LISTINGS: Listing[] = [
     status: 'ACTIVE',
     auctionEndAt: new Date(Date.now() + 86400000 * 5).toISOString(),
     images: [
-      'https://images.unsplash.com/photo-1550592704-6c76defa99ce?auto=format&fit=crop&w=800&q=80'
+      'https://picsum.photos/seed/poly1/800/600'
     ],
     aiClassification: {
       materialType: { value: 'POLYESTER', confidence: 0.91 },
@@ -91,3 +100,6 @@ export const MOCK_LISTINGS: Listing[] = [
     createdAt: new Date(Date.now() - 3600000).toISOString(),
   }
 ];
+
+export const MOCK_ORDERS: Order[] = [];
+export const MOCK_BIDS: Bid[] = [];

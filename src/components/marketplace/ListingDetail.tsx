@@ -1,31 +1,72 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useApp } from '../../context/AppContext';
 import { Listing } from '../../types';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 import { Input } from '../ui/Input';
-import { ArrowLeft, Sparkles, MapPin, Scale, Clock, ShieldCheck, Truck, Zap } from 'lucide-react';
+import { ArrowLeft, Sparkles, MapPin, Scale, Clock, ShieldCheck, Truck, Zap, History } from 'lucide-react';
 
 interface ListingDetailProps {
   listing: Listing;
   onBack: () => void;
 }
 
-export function ListingDetail({ listing, onBack }: ListingDetailProps) {
+export function ListingDetail({ listing: initialListing, onBack }: ListingDetailProps) {
+  const { placeBid, buyNow, listings, bids, users } = useApp();
+  
+  // Get fresh listing data from context
+  const listing = listings.find(l => l.id === initialListing.id) || initialListing;
+  const listingBids = bids.filter(b => b.listingId === listing.id).sort((a, b) => b.amountPkr - a.amountPkr);
+
   const [bidAmount, setBidAmount] = useState<string>('');
   const [autoBidCeiling, setAutoBidCeiling] = useState<string>('');
   const [isBidding, setIsBidding] = useState(false);
   const [showAutoBid, setShowAutoBid] = useState(false);
+  const [timeLeft, setTimeLeft] = useState<string>('');
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const end = new Date(listing.auctionEndAt).getTime();
+      const now = new Date().getTime();
+      const diff = end - now;
+
+      if (diff <= 0) {
+        setTimeLeft('Auction Ended');
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+    };
+
+    calculateTimeLeft();
+    const timer = setInterval(calculateTimeLeft, 1000);
+    return () => clearInterval(timer);
+  }, [listing.auctionEndAt]);
 
   const handleBid = () => {
     setIsBidding(true);
     setTimeout(() => {
+      placeBid(listing.id, parseInt(bidAmount));
       alert(`Bid of PKR ${bidAmount} ${autoBidCeiling ? `with auto-bid up to PKR ${autoBidCeiling}` : ''} placed successfully!`);
       setIsBidding(false);
       setBidAmount('');
       setAutoBidCeiling('');
       setShowAutoBid(false);
     }, 1000);
+  };
+
+  const handleBuyNow = () => {
+    if (window.confirm(`Are you sure you want to buy this lot for PKR ${listing.buyNowPrice?.toLocaleString()}?`)) {
+      buyNow(listing.id);
+      alert('Purchase successful! Check your dashboard for payment and delivery details.');
+      onBack();
+    }
   };
 
   return (
@@ -117,6 +158,41 @@ export function ListingDetail({ listing, onBack }: ListingDetailProps) {
               </div>
             </div>
           </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <History className="w-5 h-5 text-gray-500" />
+                Bid History
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {listingBids.length === 0 ? (
+                <p className="text-sm text-gray-500 text-center py-4">No bids yet. Be the first to bid!</p>
+              ) : (
+                <div className="space-y-3">
+                  {listingBids.map((bid, index) => {
+                    const buyer = users.find(u => u.id === bid.buyerId);
+                    const maskedName = buyer ? `Buyer ***${buyer.id.slice(-3)}` : 'Unknown Buyer';
+                    return (
+                      <div key={bid.id} className={`flex justify-between items-center p-3 rounded-lg border ${index === 0 ? 'border-brand-accent bg-brand-accent/5' : 'border-gray-100 bg-gray-50'}`}>
+                        <div>
+                          <p className="font-medium text-sm">{maskedName}</p>
+                          <p className="text-xs text-gray-500">{new Date(bid.createdAt).toLocaleString()}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className={`font-bold ${index === 0 ? 'text-brand-accent' : 'text-gray-700'}`}>
+                            PKR {bid.amountPkr.toLocaleString()}
+                          </p>
+                          {index === 0 && <span className="text-xs text-brand-accent font-medium">Highest Bid</span>}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         <div className="space-y-6">
@@ -126,9 +202,10 @@ export function ListingDetail({ listing, onBack }: ListingDetailProps) {
                 Current Bid
                 <span className="text-2xl font-bold">PKR {listing.currentBidPkr?.toLocaleString() || listing.floorPricePkr.toLocaleString()}</span>
               </CardTitle>
-              <p className="text-sm text-gray-500 mt-2 flex items-center gap-2">
-                <Clock className="w-4 h-4" /> Auction ends in 2 days
-              </p>
+              <div className={`mt-2 flex items-center gap-2 p-2 rounded-md justify-center font-mono text-sm ${timeLeft === 'Auction Ended' ? 'bg-red-100 text-red-700' : 'bg-brand-warning/20 text-brand-warning font-bold'}`}>
+                <Clock className="w-4 h-4" /> 
+                {timeLeft}
+              </div>
             </CardHeader>
             <CardContent className="pt-6 space-y-6">
               <div className="space-y-4">
@@ -140,6 +217,7 @@ export function ListingDetail({ listing, onBack }: ListingDetailProps) {
                     value={bidAmount}
                     onChange={(e) => setBidAmount(e.target.value)}
                     className="text-lg font-medium"
+                    disabled={listing.status !== 'ACTIVE' || timeLeft === 'Auction Ended'}
                   />
                   <p className="text-xs text-gray-500">Must be higher than current bid</p>
                 </div>
@@ -148,6 +226,7 @@ export function ListingDetail({ listing, onBack }: ListingDetailProps) {
                   <button 
                     onClick={() => setShowAutoBid(true)}
                     className="text-sm text-brand-accent font-medium flex items-center gap-1 hover:underline"
+                    disabled={listing.status !== 'ACTIVE' || timeLeft === 'Auction Ended'}
                   >
                     <Zap className="w-4 h-4" /> Set up Auto-Bid
                   </button>
@@ -162,6 +241,7 @@ export function ListingDetail({ listing, onBack }: ListingDetailProps) {
                       value={autoBidCeiling}
                       onChange={(e) => setAutoBidCeiling(e.target.value)}
                       className="bg-white"
+                      disabled={listing.status !== 'ACTIVE' || timeLeft === 'Auction Ended'}
                     />
                     <p className="text-xs text-gray-500">We'll automatically bid for you up to this amount.</p>
                   </div>
@@ -171,15 +251,19 @@ export function ListingDetail({ listing, onBack }: ListingDetailProps) {
               <Button 
                 className="w-full text-lg h-12" 
                 onClick={handleBid}
-                disabled={isBidding || !bidAmount}
+                disabled={isBidding || !bidAmount || listing.status !== 'ACTIVE' || timeLeft === 'Auction Ended'}
               >
                 {isBidding ? 'Placing Bid...' : 'Place Bid'}
               </Button>
 
-              {listing.buyNowPrice && (
+              {listing.buyNowPrice && listing.status === 'ACTIVE' && timeLeft !== 'Auction Ended' && (
                 <div className="pt-4 border-t border-gray-100">
                   <p className="text-sm text-gray-500 mb-2 text-center">Or purchase immediately</p>
-                  <Button variant="outline" className="w-full h-12 text-brand-primary border-brand-primary/30 hover:bg-brand-primary/5">
+                  <Button 
+                    variant="outline" 
+                    className="w-full h-12 text-brand-primary border-brand-primary/30 hover:bg-brand-primary/5"
+                    onClick={handleBuyNow}
+                  >
                     Buy Now for PKR {listing.buyNowPrice.toLocaleString()}
                   </Button>
                 </div>

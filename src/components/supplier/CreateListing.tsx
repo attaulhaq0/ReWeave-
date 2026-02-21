@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useApp } from '../../context/AppContext';
 import { Button } from '../ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 import { Input } from '../ui/Input';
@@ -9,9 +10,16 @@ interface CreateListingProps {
 }
 
 export function CreateListing({ onComplete }: CreateListingProps) {
+  const { createListing } = useApp();
   const [step, setStep] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
   const [images, setImages] = useState<string[]>([]);
+
+  // Form state
+  const [weightKg, setWeightKg] = useState('2500');
+  const [minOrderKg, setMinOrderKg] = useState('500');
+  const [floorPricePkr, setFloorPricePkr] = useState('150000');
+  const [buyNowPrice, setBuyNowPrice] = useState('180000');
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -28,7 +36,29 @@ export function CreateListing({ onComplete }: CreateListingProps) {
   };
 
   const handlePublish = () => {
-    // Simulate publish
+    createListing({
+      materialType: 'COTTON',
+      colorClass: 'LIGHT',
+      grade: 'A',
+      weightKg: parseInt(weightKg),
+      minOrderKg: parseInt(minOrderKg),
+      floorPricePkr: parseInt(floorPricePkr),
+      buyNowPrice: buyNowPrice ? parseInt(buyNowPrice) : undefined,
+      status: 'ACTIVE',
+      auctionEndAt: new Date(Date.now() + 86400000 * 7).toISOString(), // 7 days
+      images,
+      aiClassification: {
+        materialType: { value: 'COTTON', confidence: 0.94 },
+        colorClass: { value: 'LIGHT', confidence: 0.89 },
+        grade: { value: 'A', confidence: 0.87 },
+        estimatedWeightKg: { value: parseInt(weightKg), method: 'volume_estimation' },
+        fiberBlend: { cotton: 1.0 },
+        defectDetected: false,
+        recyclabilityScore: 0.91,
+        suggestedUseCases: ['fiber_recycling', 'yarn_spinning']
+      }
+    });
+
     alert('Listing published successfully!');
     onComplete();
   };
@@ -144,19 +174,19 @@ export function CreateListing({ onComplete }: CreateListingProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">Total Weight (kg)</label>
-                <Input type="number" defaultValue="2500" />
+                <Input type="number" value={weightKg} onChange={e => setWeightKg(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">Minimum Order (kg)</label>
-                <Input type="number" defaultValue="500" />
+                <Input type="number" value={minOrderKg} onChange={e => setMinOrderKg(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">Floor Price (PKR)</label>
-                <Input type="number" defaultValue="150000" />
+                <Input type="number" value={floorPricePkr} onChange={e => setFloorPricePkr(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">Buy Now Price (Optional)</label>
-                <Input type="number" defaultValue="180000" />
+                <Input type="number" value={buyNowPrice} onChange={e => setBuyNowPrice(e.target.value)} />
               </div>
             </div>
             

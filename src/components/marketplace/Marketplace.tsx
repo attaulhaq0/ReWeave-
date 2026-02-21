@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MOCK_LISTINGS } from '../../data';
+import { useApp } from '../../context/AppContext';
 import { ListingCard } from './ListingCard';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
@@ -11,12 +11,15 @@ interface MarketplaceProps {
 }
 
 export function Marketplace({ onListingClick }: MarketplaceProps) {
+  const { listings } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMaterial, setSelectedMaterial] = useState<string>('ALL');
 
   const materials = ['ALL', 'COTTON', 'POLYESTER', 'DENIM', 'BLEND'];
 
-  const filteredListings = MOCK_LISTINGS.filter(listing => {
+  const activeListings = listings.filter(l => l.status === 'ACTIVE');
+
+  const filteredListings = activeListings.filter(listing => {
     const matchesSearch = listing.materialType.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           listing.supplierName.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesMaterial = selectedMaterial === 'ALL' || listing.materialType === selectedMaterial;

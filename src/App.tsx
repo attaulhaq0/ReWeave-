@@ -1,19 +1,32 @@
 import React, { useState } from 'react';
+import { AppProvider, useApp } from './context/AppContext';
+import { Login } from './components/auth/Login';
 import { Marketplace } from './components/marketplace/Marketplace';
 import { ListingDetail } from './components/marketplace/ListingDetail';
 import { SupplierDashboard } from './components/supplier/SupplierDashboard';
 import { CreateListing } from './components/supplier/CreateListing';
+import { BuyerDashboard } from './components/buyer/BuyerDashboard';
+import { AdminDashboard } from './components/admin/AdminDashboard';
 import { Listing } from './types';
-import { LayoutDashboard, ShoppingBag, PlusCircle, LogOut, Menu, X, Recycle } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, PlusCircle, LogOut, Menu, X, Recycle, ShieldAlert } from 'lucide-react';
 
-type ViewState = 'marketplace' | 'listing_detail' | 'supplier_dashboard' | 'create_listing';
-type Persona = 'buyer' | 'supplier';
+type ViewState = 'marketplace' | 'listing_detail' | 'supplier_dashboard' | 'create_listing' | 'buyer_dashboard' | 'admin_dashboard';
 
-export default function App() {
-  const [currentView, setCurrentView] = useState<ViewState>('marketplace');
-  const [persona, setPersona] = useState<Persona>('buyer');
+function MainApp() {
+  const { currentUser, logout } = useApp();
+  
+  // Default view based on role
+  const defaultView = currentUser?.role === 'ADMIN' ? 'admin_dashboard' : 
+                      currentUser?.role === 'SUPPLIER' ? 'supplier_dashboard' : 
+                      'marketplace';
+
+  const [currentView, setCurrentView] = useState<ViewState>(defaultView);
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  if (!currentUser) {
+    return <Login />;
+  }
 
   const handleListingClick = (listing: Listing) => {
     setSelectedListing(listing);
@@ -23,13 +36,6 @@ export default function App() {
   const handleBackToMarketplace = () => {
     setSelectedListing(null);
     setCurrentView('marketplace');
-  };
-
-  const togglePersona = () => {
-    const newPersona = persona === 'buyer' ? 'supplier' : 'buyer';
-    setPersona(newPersona);
-    setCurrentView(newPersona === 'buyer' ? 'marketplace' : 'supplier_dashboard');
-    setIsMobileMenuOpen(false);
   };
 
   const NavItem = ({ icon: Icon, label, view, onClick }: any) => (
@@ -79,30 +85,39 @@ export default function App() {
 
         <div className="p-4 flex-1 overflow-y-auto space-y-2">
           <div className="mb-6 px-4 py-3 bg-gray-50 rounded-lg border border-gray-100">
-            <p className="text-xs text-gray-500 uppercase font-semibold tracking-wider mb-1">Current Role</p>
-            <p className="font-medium text-brand-primary capitalize">{persona}</p>
+            <p className="text-xs text-gray-500 uppercase font-semibold tracking-wider mb-1">Logged in as</p>
+            <p className="font-medium text-brand-primary truncate">{currentUser.fullName}</p>
+            <p className="text-xs text-gray-500 capitalize">{currentUser.role.toLowerCase()}</p>
           </div>
 
-          {persona === 'buyer' ? (
+          {currentUser.role === 'BUYER' && (
             <>
               <NavItem icon={ShoppingBag} label="Marketplace" view="marketplace" />
-              <NavItem icon={LayoutDashboard} label="My Bids" view="bids" />
+              <NavItem icon={LayoutDashboard} label="My Dashboard" view="buyer_dashboard" />
             </>
-          ) : (
+          )}
+
+          {currentUser.role === 'SUPPLIER' && (
             <>
               <NavItem icon={LayoutDashboard} label="Dashboard" view="supplier_dashboard" />
               <NavItem icon={PlusCircle} label="List Waste" view="create_listing" />
+            </>
+          )}
+
+          {currentUser.role === 'ADMIN' && (
+            <>
+              <NavItem icon={ShieldAlert} label="Admin Panel" view="admin_dashboard" />
             </>
           )}
         </div>
 
         <div className="p-4 border-t border-gray-200 space-y-2">
           <button
-            onClick={togglePersona}
-            className="flex items-center gap-3 w-full px-4 py-3 rounded-lg text-brand-accent hover:bg-brand-accent/10 transition-colors font-medium"
+            onClick={logout}
+            className="flex items-center gap-3 w-full px-4 py-3 rounded-lg text-brand-danger hover:bg-brand-danger/10 transition-colors font-medium"
           >
             <LogOut className="w-5 h-5" />
-            Switch to {persona === 'buyer' ? 'Supplier' : 'Buyer'}
+            Sign Out
           </button>
         </div>
       </aside>
@@ -119,12 +134,8 @@ export default function App() {
         {currentView === 'create_listing' && (
           <CreateListing onComplete={() => setCurrentView('supplier_dashboard')} />
         )}
-        {currentView === 'bids' && (
-          <div className="p-8 text-center text-gray-500">
-            <h2 className="text-2xl font-bold text-brand-primary mb-2">My Bids</h2>
-            <p>You haven't placed any bids yet.</p>
-          </div>
-        )}
+        {currentView === 'buyer_dashboard' && <BuyerDashboard />}
+        {currentView === 'admin_dashboard' && <AdminDashboard />}
       </main>
       
       {/* Overlay for mobile sidebar */}
@@ -135,5 +146,13 @@ export default function App() {
         />
       )}
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AppProvider>
+      <MainApp />
+    </AppProvider>
   );
 }

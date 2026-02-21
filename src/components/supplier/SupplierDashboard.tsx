@@ -1,20 +1,33 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useApp } from '../../context/AppContext';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
-import { MOCK_LISTINGS } from '../../data';
-import { Plus, TrendingUp, Package, DollarSign, Activity } from 'lucide-react';
+import { Plus, TrendingUp, Package, DollarSign, Activity, XCircle } from 'lucide-react';
 import { MaterialBreakdownChart } from '../analytics/MaterialBreakdownChart';
 import { PriceTrendChart } from '../analytics/PriceTrendChart';
+import { ListingStatus } from '../../types';
 
 interface SupplierDashboardProps {
   onCreateListing: () => void;
 }
 
 export function SupplierDashboard({ onCreateListing }: SupplierDashboardProps) {
-  const activeListings = MOCK_LISTINGS.filter(l => l.status === 'ACTIVE');
+  const { listings, currentUser, updateListingStatus } = useApp();
+  const [activeTab, setActiveTab] = useState<ListingStatus>('ACTIVE');
+  
+  const myListings = listings.filter(l => l.supplierId === currentUser?.id);
+  const activeListings = myListings.filter(l => l.status === 'ACTIVE');
   const totalVolume = activeListings.reduce((sum, l) => sum + l.weightKg, 0);
   const potentialRevenue = activeListings.reduce((sum, l) => sum + (l.currentBidPkr || l.floorPricePkr), 0);
+
+  const displayedListings = myListings.filter(l => l.status === activeTab);
+
+  const handleCancel = (id: string) => {
+    if (window.confirm('Are you sure you want to cancel this listing?')) {
+      updateListingStatus(id, 'CANCELLED');
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -71,7 +84,22 @@ export function SupplierDashboard({ onCreateListing }: SupplierDashboardProps) {
         <MaterialBreakdownChart />
       </div>
 
-      <h2 className="text-xl font-bold text-brand-primary mb-4">Your Active Listings</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-bold text-brand-primary">Your Listings</h2>
+        <div className="flex gap-2">
+          {(['ACTIVE', 'DRAFT', 'SOLD', 'EXPIRED', 'CANCELLED'] as ListingStatus[]).map(status => (
+            <Button 
+              key={status}
+              variant={activeTab === status ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setActiveTab(status)}
+            >
+              {status}
+            </Button>
+          ))}
+        </div>
+      </div>
+
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
@@ -85,7 +113,7 @@ export function SupplierDashboard({ onCreateListing }: SupplierDashboardProps) {
               </tr>
             </thead>
             <tbody>
-              {activeListings.map((listing) => (
+              {displayedListings.map((listing) => (
                 <tr key={listing.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
@@ -104,13 +132,31 @@ export function SupplierDashboard({ onCreateListing }: SupplierDashboardProps) {
                     <p className="text-xs text-gray-500">{listing.bidsCount} bids</p>
                   </td>
                   <td className="px-6 py-4">
-                    <Badge variant="success" className="bg-green-100 text-green-800 hover:bg-green-200">Active</Badge>
+                    <Badge 
+                      variant={listing.status === 'ACTIVE' ? 'success' : listing.status === 'SOLD' ? 'secondary' : listing.status === 'CANCELLED' ? 'warning' : 'outline'}
+                    >
+                      {listing.status}
+                    </Badge>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <Button variant="ghost" size="sm" className="text-brand-primary">View</Button>
+                    <div className="flex justify-end gap-2">
+                      {listing.status === 'ACTIVE' && listing.bidsCount === 0 && (
+                        <Button variant="ghost" size="sm" className="text-brand-danger hover:bg-brand-danger/10" onClick={() => handleCancel(listing.id)}>
+                          <XCircle className="w-4 h-4" />
+                        </Button>
+                      )}
+                      <Button variant="ghost" size="sm" className="text-brand-primary">View</Button>
+                    </div>
                   </td>
                 </tr>
               ))}
+              {displayedListings.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                    No {activeTab.toLowerCase()} listings found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

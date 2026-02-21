@@ -13,8 +13,11 @@ export interface AIClassification {
   suggestedUseCases: string[];
 }
 
+export type ListingStatus = 'DRAFT' | 'ACTIVE' | 'SOLD' | 'CANCELLED' | 'EXPIRED';
+
 export interface Listing {
   id: string;
+  supplierId: string;
   supplierName: string;
   supplierLocation: string;
   materialType: MaterialType;
@@ -24,11 +27,41 @@ export interface Listing {
   minOrderKg: number;
   floorPricePkr: number;
   buyNowPrice?: number;
-  status: 'DRAFT' | 'ACTIVE' | 'SOLD';
+  status: ListingStatus;
   auctionEndAt: string;
   images: string[];
   aiClassification: AIClassification;
   currentBidPkr?: number;
   bidsCount: number;
+  createdAt: string;
+}
+
+export type UserRole = 'SUPPLIER' | 'BUYER' | 'ADMIN';
+export type KYBStatus = 'PENDING' | 'VERIFIED' | 'REJECTED';
+
+export interface User {
+  id: string;
+  email: string;
+  role: UserRole;
+  fullName: string;
+  companyName: string;
+  kybStatus?: KYBStatus;
+}
+
+export interface Bid {
+  id: string;
+  listingId: string;
+  buyerId: string;
+  amountPkr: number;
+  createdAt: string;
+}
+
+export interface Order {
+  id: string;
+  listingId: string;
+  supplierId: string;
+  buyerId: string;
+  finalPricePkr: number;
+  status: 'PENDING' | 'PAID' | 'DELIVERED' | 'DISPUTED';
   createdAt: string;
 }
