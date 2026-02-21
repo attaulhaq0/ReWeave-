@@ -758,20 +758,6 @@ Core marketplace: list → classify → bid → pay → pickup
 - [ ] Bengali language support
 - [ ] Export compliance & customs documentation
 - [ ] EU market entry (GPSR compliance)
-
----
-
-## 👥 Team
-
-| Role | Name | GitHub |
-|---|---|---|
-| Founder / CTO | — | [@handle]() |
-| Full-Stack Engineer | — | [@handle]() |
-| ML Engineer | — | [@handle]() |
-| UI/UX Designer | — | [@handle]() |
-
-Want to join? We're hiring — [careers@reweave.ai](mailto:careers@reweave.ai)
-
 ---
 
 ## 📄 License
