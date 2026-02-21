@@ -3,14 +3,14 @@ import { useApp } from '../../context/AppContext';
 import { Button } from '../ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 import { Input } from '../ui/Input';
-import { UploadCloud, CheckCircle2, Loader2, Sparkles, ArrowRight } from 'lucide-react';
+import { UploadCloud, CheckCircle2, Loader2, Sparkles, ArrowRight, AlertTriangle, Lock } from 'lucide-react';
 
 interface CreateListingProps {
   onComplete: () => void;
 }
 
 export function CreateListing({ onComplete }: CreateListingProps) {
-  const { createListing } = useApp();
+  const { createListing, currentUser } = useApp();
   const [step, setStep] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
   const [images, setImages] = useState<string[]>([]);
@@ -20,6 +20,8 @@ export function CreateListing({ onComplete }: CreateListingProps) {
   const [minOrderKg, setMinOrderKg] = useState('500');
   const [floorPricePkr, setFloorPricePkr] = useState('150000');
   const [buyNowPrice, setBuyNowPrice] = useState('180000');
+
+  const isKybVerified = currentUser?.kybStatus === 'VERIFIED';
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -35,7 +37,7 @@ export function CreateListing({ onComplete }: CreateListingProps) {
     }
   };
 
-  const handlePublish = () => {
+  const handlePublish = (status: 'ACTIVE' | 'DRAFT') => {
     createListing({
       materialType: 'COTTON',
       colorClass: 'LIGHT',
@@ -44,7 +46,7 @@ export function CreateListing({ onComplete }: CreateListingProps) {
       minOrderKg: parseInt(minOrderKg),
       floorPricePkr: parseInt(floorPricePkr),
       buyNowPrice: buyNowPrice ? parseInt(buyNowPrice) : undefined,
-      status: 'ACTIVE',
+      status,
       auctionEndAt: new Date(Date.now() + 86400000 * 7).toISOString(), // 7 days
       images,
       aiClassification: {
@@ -59,7 +61,7 @@ export function CreateListing({ onComplete }: CreateListingProps) {
       }
     });
 
-    alert('Listing published successfully!');
+    alert(`Listing saved as ${status}!`);
     onComplete();
   };
 
@@ -69,6 +71,18 @@ export function CreateListing({ onComplete }: CreateListingProps) {
         <h1 className="text-3xl font-bold text-brand-primary mb-2">List New Waste</h1>
         <p className="text-gray-500">Upload photos of your textile waste for AI classification.</p>
       </div>
+
+      {!isKybVerified && (
+        <div className="mb-6 bg-brand-warning/10 border border-brand-warning/20 rounded-lg p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-brand-warning shrink-0 mt-0.5" />
+          <div>
+            <h3 className="font-medium text-brand-warning">KYB Verification Pending</h3>
+            <p className="text-sm text-brand-warning/80 mt-1">
+              Your business verification is currently pending. You can create listings and save them as drafts, but you cannot publish them to the marketplace until verified.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="flex items-center justify-between mb-8 relative">
         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-gray-200 -z-10 rounded-full"></div>
@@ -191,8 +205,15 @@ export function CreateListing({ onComplete }: CreateListingProps) {
             </div>
             
             <div className="pt-6 border-t border-gray-200 flex justify-end gap-4">
-              <Button variant="outline" onClick={() => setStep(2)}>Back</Button>
-              <Button onClick={handlePublish} className="bg-brand-accent hover:bg-brand-accent/90">Publish Listing</Button>
+              <Button variant="outline" onClick={() => handlePublish('DRAFT')}>Save as Draft</Button>
+              <Button 
+                onClick={() => handlePublish('ACTIVE')} 
+                className="bg-brand-accent hover:bg-brand-accent/90 flex items-center gap-2"
+                disabled={!isKybVerified}
+              >
+                {!isKybVerified && <Lock className="w-4 h-4" />}
+                {isKybVerified ? 'Publish Listing' : 'Publish Locked (KYB Pending)'}
+              </Button>
             </div>
           </CardContent>
         </Card>

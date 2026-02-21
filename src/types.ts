@@ -65,3 +65,11 @@ export interface Order {
   status: 'PENDING' | 'PAID' | 'DELIVERED' | 'DISPUTED';
   createdAt: string;
 }
+
+export interface AppNotification {
+  id: string;
+  userId: string;
+  message: string;
+  read: boolean;
+  createdAt: string;
+}

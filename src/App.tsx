@@ -8,12 +8,12 @@ import { CreateListing } from './components/supplier/CreateListing';
 import { BuyerDashboard } from './components/buyer/BuyerDashboard';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { Listing } from './types';
-import { LayoutDashboard, ShoppingBag, PlusCircle, LogOut, Menu, X, Recycle, ShieldAlert } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, PlusCircle, LogOut, Menu, X, Recycle, ShieldAlert, Bell } from 'lucide-react';
 
 type ViewState = 'marketplace' | 'listing_detail' | 'supplier_dashboard' | 'create_listing' | 'buyer_dashboard' | 'admin_dashboard';
 
 function MainApp() {
-  const { currentUser, logout } = useApp();
+  const { currentUser, logout, notifications, markNotificationsRead } = useApp();
   
   // Default view based on role
   const defaultView = currentUser?.role === 'ADMIN' ? 'admin_dashboard' : 
@@ -23,10 +23,14 @@ function MainApp() {
   const [currentView, setCurrentView] = useState<ViewState>(defaultView);
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
 
   if (!currentUser) {
     return <Login />;
   }
+
+  const myNotifications = notifications.filter(n => n.userId === currentUser.id);
+  const unreadCount = myNotifications.filter(n => !n.read).length;
 
   const handleListingClick = (listing: Listing) => {
     setSelectedListing(listing);
@@ -36,6 +40,13 @@ function MainApp() {
   const handleBackToMarketplace = () => {
     setSelectedListing(null);
     setCurrentView('marketplace');
+  };
+
+  const toggleNotif = () => {
+    if (!isNotifOpen && unreadCount > 0) {
+      markNotificationsRead();
+    }
+    setIsNotifOpen(!isNotifOpen);
   };
 
   const NavItem = ({ icon: Icon, label, view, onClick }: any) => (
@@ -66,9 +77,19 @@ function MainApp() {
           </div>
           ReWeave
         </div>
-        <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-gray-500">
-          {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
+        <div className="flex items-center gap-4">
+          <button className="relative text-gray-500" onClick={toggleNotif}>
+            <Bell className="w-6 h-6" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-brand-danger text-white text-[10px] font-bold flex items-center justify-center rounded-full">
+                {unreadCount}
+              </span>
+            )}
+          </button>
+          <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-gray-500">
+            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
       </div>
 
       {/* Sidebar */}
@@ -123,7 +144,44 @@ function MainApp() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto relative">
+        {/* Desktop Header with Notifications */}
+        <div className="hidden md:flex justify-end p-4 sticky top-0 bg-neutral-50/80 backdrop-blur-sm z-10">
+          <div className="relative">
+            <button 
+              className="p-2 rounded-full bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 relative shadow-sm"
+              onClick={toggleNotif}
+            >
+              <Bell className="w-5 h-5" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-brand-danger text-white text-xs font-bold flex items-center justify-center rounded-full border-2 border-white">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+
+            {isNotifOpen && (
+              <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50">
+                <div className="p-4 border-b border-gray-100 bg-gray-50">
+                  <h3 className="font-semibold text-gray-900">Notifications</h3>
+                </div>
+                <div className="max-h-96 overflow-y-auto">
+                  {myNotifications.length === 0 ? (
+                    <p className="p-4 text-sm text-gray-500 text-center">No notifications yet.</p>
+                  ) : (
+                    myNotifications.map(notif => (
+                      <div key={notif.id} className={`p-4 border-b border-gray-50 text-sm ${notif.read ? 'bg-white text-gray-600' : 'bg-brand-primary/5 text-gray-900 font-medium'}`}>
+                        <p>{notif.message}</p>
+                        <p className="text-xs text-gray-400 mt-1">{new Date(notif.createdAt).toLocaleString()}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         {currentView === 'marketplace' && <Marketplace onListingClick={handleListingClick} />}
         {currentView === 'listing_detail' && selectedListing && (
           <ListingDetail listing={selectedListing} onBack={handleBackToMarketplace} />

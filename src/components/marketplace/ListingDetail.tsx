@@ -6,6 +6,7 @@ import { Badge } from '../ui/Badge';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 import { Input } from '../ui/Input';
 import { ArrowLeft, Sparkles, MapPin, Scale, Clock, ShieldCheck, Truck, Zap, History } from 'lucide-react';
+import { PaymentModal } from './PaymentModal';
 
 interface ListingDetailProps {
   listing: Listing;
@@ -24,6 +25,7 @@ export function ListingDetail({ listing: initialListing, onBack }: ListingDetail
   const [isBidding, setIsBidding] = useState(false);
   const [showAutoBid, setShowAutoBid] = useState(false);
   const [timeLeft, setTimeLeft] = useState<string>('');
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   useEffect(() => {
     const calculateTimeLeft = () => {
@@ -61,12 +63,11 @@ export function ListingDetail({ listing: initialListing, onBack }: ListingDetail
     }, 1000);
   };
 
-  const handleBuyNow = () => {
-    if (window.confirm(`Are you sure you want to buy this lot for PKR ${listing.buyNowPrice?.toLocaleString()}?`)) {
-      buyNow(listing.id);
-      alert('Purchase successful! Check your dashboard for payment and delivery details.');
-      onBack();
-    }
+  const handleBuyNowConfirm = () => {
+    buyNow(listing.id);
+    setShowPaymentModal(false);
+    alert('Purchase successful! Check your dashboard for payment and delivery details.');
+    onBack();
   };
 
   return (
@@ -262,7 +263,7 @@ export function ListingDetail({ listing: initialListing, onBack }: ListingDetail
                   <Button 
                     variant="outline" 
                     className="w-full h-12 text-brand-primary border-brand-primary/30 hover:bg-brand-primary/5"
-                    onClick={handleBuyNow}
+                    onClick={() => setShowPaymentModal(true)}
                   >
                     Buy Now for PKR {listing.buyNowPrice.toLocaleString()}
                   </Button>
@@ -291,6 +292,14 @@ export function ListingDetail({ listing: initialListing, onBack }: ListingDetail
           </Card>
         </div>
       </div>
+      
+      {showPaymentModal && listing.buyNowPrice && (
+        <PaymentModal 
+          amount={listing.buyNowPrice} 
+          onConfirm={handleBuyNowConfirm} 
+          onCancel={() => setShowPaymentModal(false)} 
+        />
+      )}
     </div>
   );
 }
